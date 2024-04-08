@@ -3,14 +3,22 @@
             background-color: #ffffff
         }
         p {
-            font-size : 20px;
+            font: 12px/10px Montserrat;
             padding : 0;
             margin : 0;
-            line-height : 20px;
+            line-height : 10px;
+        }
+
+        li {
+            font-size : 10px;
+            padding : 0;
+            margin : 0;
+            line-height : 10px;
         }
         th {
             text-align: left;
             vertical-align: top;
+            
         }
         .info {
             padding: 6px 8px;
@@ -54,6 +62,7 @@
         }
         td {
             min-width: 75px;
+            text-align: justify;
         }
         td img {
             max-height: 50vw;
@@ -109,7 +118,7 @@
             color: #0078A8 !important;
         }
         .leaflet-control-scale-line {
-            border: 2px solid #f8f8f8 !important;
+            border: 2px solid #0078A8 !important;
             border-top: none !important;
             color: black !important;
         }
@@ -158,7 +167,7 @@
             text-indent: 0%;
         }
         .leaflet-control-layers-toggle {
-            background-color: #f8f8f8 !important;
+            background-color: #273b80 !important;
         }
         .leaflet-overlay-pane {
             z-index: 550;
