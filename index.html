@@ -25,8 +25,7 @@
         <title></title>
     </head>
     <body>
-        <div id="map">
-        </div>
+        <div id="map"></div>
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -107,10 +106,10 @@
         }
         map.createPane('pane_Basemap_0');
         map.getPane('pane_Basemap_0').style.zIndex = 400;
-        var layer_Basemap_0 = L.tileLayer('https://a.basemaps.cartocdn.com/light_all/{z}/{x}/{y}.png', {
+        var layer_Basemap_0 = L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager_labels_under/{z}/{x}/{y}{r}.png', {
             pane: 'pane_Basemap_0',
             opacity: 1.0,
-            attribution: '<a href="https://cartodb.com/basemaps/">Map tiles by CartoDB, under CC BY 3.0. Data by OpenStreetMap, under ODbL.</a>',
+            attribution: 'Basemap by CartoDB | Map Data as of February 2024',
             minZoom: 1,
             maxZoom: 28,
             minNativeZoom: 0,
@@ -129,7 +128,9 @@
                 },
                 mouseover: highlightFeature,
             });
-            var popupContent = '<table>\
+
+
+            var popupContent = '<table><tr><center><h3>'+ (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</h3></center></tr>\
                     <tr>\
                         <th scope="row">Sequence</th>\
                         <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
@@ -143,15 +144,12 @@
                         <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
-                        <td colspan="2"><strong>Tenement Type</strong><br />' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                    </tr>\
-                    <tr>\
-                        <th scope="row">Holder</th>\
-                        <td>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</td>\
+                        <th scope="row">Tenement Type</th>\
+                        <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Area</th>\
-                        <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + '</td>\
+                        <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
                     </tr>\
                     <tr>\
                         <th scope="row">Date Filed</th>\
@@ -427,16 +425,19 @@
         .className += ' fa fa-search';
         document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
         .title += 'Search for a place';
-
+    
+               
         var title = new L.Control();
             title.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'info');
                 this.update();
                 return this._div;
             };
+
             title.update = function () {
-                this._div.innerHTML = '<h2>MINING TENEMENTS CONTROL MAP OF CENTRAL LUZON REGION</h2>';
+                this._div.innerHTML = '<table><tr><td style="text-align: center;"><img src="img/mgblogo.png" width="60" height="60"></td><td> <p>REGION 3 MINING TENEMENT CONTROL MAP<br\>data as of February 2024</p></td></tr></table>';
             };
+
             title.addTo(map);
             var abstract = new L.Control({'position':'bottomleft'});
             abstract.onAdd = function (map) {
@@ -451,11 +452,19 @@
                     this._div.classList.remove("abstract");
                     this._div.classList.add("abstractUncollapsed");
                     this._div.innerHTML = 
-                    '<b>COLATTILLA.</b> <br />1. Political Bounddaries are not indicative<br /> 2. Map data are based on Survey Section Records. <br />3. This Map is not valid for litigation purposes.<br />4. Preplotted applications are not indicated in the map.';
+                    '<b>COLATTILLA</b><ol><li>Political Boundaries are not indicative</li> <li>Map data are based on Survey Section Records.</li> <li>This Map is not valid for litigation purposes.</li> <li>Preplotted applications are not indicated in the map.</li></ol>';
             };
             abstract.addTo(map);
 
+            var north = L.control({position: "bottomright"});
+                    north.onAdd = function(map) {
+                        var div = L.DomUtil.create("div", "info legend");
+                        div.innerHTML = '<img src="img/north-arrow-n.svg" width="50" height="60">';
+                        return div;
+                    }
+                    north.addTo(map);
 
+            L.control.scale({position: "bottomright"}).addTo(map);
 
 
         var baseMaps = {};
@@ -463,7 +472,7 @@
         var overlaysTree = [
         {label: '<b>LEGEND</b>', selectAllCheckbox: true, children: [
             {label: 'Tenement Map [as of February 2024]<br /><table><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_MPSAMINERALPRODUCTIONSHARINGAGREEMENT0.png" /></td><td>[MPSA] MINERAL PRODUCTION SHARING AGREEMENT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_APSAAPPLICATIONFORPRODUCTIONSHARINGAGREEMENT1.png" /></td><td>[APSA] APPLICATION FOR PRODUCTION SHARING AGREEMENT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_EPEXPLORATIONPERMIT2.png" /></td><td>[EP] EXPLORATION PERMIT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_EXPAEXPLORATIONPERMITAPPLICATION3.png" /></td><td>[EXPA] EXPLORATION PERMIT APPLICATION</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_ISGPINDUSTRIALSANDANDGRAVELPERMIT4.png" /></td><td>[ISGP] INDUSTRIAL SAND AND GRAVEL PERMIT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_IPAINDUSTRIALSANDANDGRAVELPERMITAPPLICATION5.png" /></td><td>[IPA] INDUSTRIAL SAND AND GRAVEL PERMIT APPLICATION</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_AFTAAPPLICATIONFORFINANCIALTECHNICALASSISTANCE6.png" /></td><td>[AFTA] APPLICATION FOR FINANCIAL TECHNICAL ASSISTANCE</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_PROCPROCLAMATION7.png" /></td><td>[PROC] PROCLAMATION</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_GSQPAGOVERNMENTSEABEDQUARRYPERMITAPPLICATION8.png" /></td><td>[GSQPA] GOVERNMENT SEABED QUARRY PERMIT APPLICATION</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_GSQPGOVERNMENTSEABEDQUARRYPERMIT9.png" /></td><td>[GSQP] GOVERNMENT SEABED QUARRY PERMIT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_DREDGINGFILEDATDPWH10.png" /></td><td>DREDGING FILED AT DPWH</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_CERTIFICATEOFACCREDITATIONWITHDREDGINGCLEARANCE11.png" /></td><td>CERTIFICATE OF ACCREDITATION WITH DREDGING CLEARANCE</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_ASMEPAPPLICATIONFORSPECIALMINERALEXTRACTIONPERMIT12.png" /></td><td>[ASMEP] APPLICATION FOR SPECIAL MINERAL EXTRACTION PERMIT</td></tr><tr><td style="text-align: center;"><img src="legend/TenementMapasofFebruary2024_1_MPPMINERALPROCESSINGPERMITS13.png" /></td><td>[MPP] MINERAL PROCESSING PERMITS</td></tr></table>', layer: layer_TenementMapasofFebruary2024_1},]},
-            {label: "Basemap [Positron | CartoDB ]", layer: layer_Basemap_0},]
+            {label: "Basemap", layer: layer_Basemap_0},]
         var lay = L.control.layers.tree(null, overlaysTree,{
             //namedToggle: true,
             //selectorBack: false,
@@ -475,11 +484,13 @@
         });
         lay.addTo(map);
         setBounds();
+
         map.addControl(new L.Control.Search({
             layer: layer_MGB_3_TenementMap_February2024_1,
             initial: false,
             hideMarkerOnCollapse: true,
             propertyName: 'Tenement_N'}));
+
         document.getElementsByClassName('search-button')[0].className +=
          ' fa fa-binoculars';
         resetLabels([layer_TenementMapasofFebruary2024_1]);

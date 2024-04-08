@@ -2,21 +2,27 @@
         #map {
             background-color: #ffffff
         }
+        p {
+            font-size : 20px;
+            padding : 0;
+            margin : 0;
+            line-height : 20px;
+        }
         th {
             text-align: left;
             vertical-align: top;
         }
         .info {
             padding: 6px 8px;
-            font: 14px/16px Arial, Helvetica, sans-serif;
+            font: 14px/16px Montserrat;
             background: white;
-            background: rgba(255,255,255,0.8);
+            background: #273b80;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
             border-radius: 5px;
         }
         .info h2 {
-            margin: 0 0 5px;
-            color: #777;
+            margin: 5 5 5px;
+            color: white;
         }
         .leaflet-container {
             background: #fff;
@@ -35,7 +41,14 @@
             max-height: 70vw;
             max-width: 70vw;
             overflow: auto;
+
         }
+        
+        table, th, td{
+            border: 1px solid #B3B6B7;
+            border-collapse: collapse;
+        }
+
         th {
             min-width: 75px;
         }
@@ -54,18 +67,18 @@
         .leaflet-tooltip-left:before, .leaflet-tooltip-right:before {
             border: 0px;
         }
-        }
+        
         .fa, .leaflet-container, a {
-            color: #000000 !important;
+            color: white !important;
         }
         .leaflet-control-zoom-in, .leaflet-control-zoom-out,
         .leaflet-control-locate a,
         .leaflet-touch .leaflet-control-geocoder-icon,
         .leaflet-control-search .search-button,
          .leaflet-control-measure {
-            background-color: #f8f8f8 !important;
+            background-color: #273b80 !important;
             border-radius: 0px !important;
-            color: #000000 !important;
+            color: white !important;
         }
         .abstract {
             font: bold 18px 'Lucida Console', Monaco, monospace;
@@ -80,8 +93,8 @@
         .abstractUncollapsed {
             padding: 6px 8px;
             font: 12px/1.5 "Helvetica Neue", Arial, Helvetica, sans-serif;
-            background-color:#f8f8f8 !important;
-            color: #000000 !important;
+            background-color:#273b80 !important;
+            color: white !important;
             box-shadow: 0 0 15px rgba(0,0,0,0.2);
             border-radius: 5px;
             max-width: 40%;
@@ -137,8 +150,8 @@
             width: 30px !important;
             height: 30px !important;
             border-radius: 0px !important;
-            background-color: #f8f8f8 !important;
-            color: #000000 !important;
+            background-color: #273b80 !important;
+            color: white !important;
             font-size: 13px;
             line-height: 30px;
             text-align: center;
@@ -153,3 +166,5 @@
         .leaflet-popup-pane {
             z-index: 700;
         }
+
+        
