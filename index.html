@@ -37,11 +37,10 @@
                 z-index: 9999;
             }
 
-            /* Loading text */
-            #loading-text {
+            .loading-text {
                 font-size: 18px;
                 font-weight: bold;
-                margin-bottom: 10px;
+                margin: 5px 0;
                 color: #333;
             }
 
@@ -60,10 +59,67 @@
                 100% { transform: rotate(360deg); }
 }
 
-        /* Hide the map initially */
+        /* Map container */
         #map {
-            display: none;
             height: 100%;
+        }
+
+        /* Modern Popup Design */
+        .leaflet-popup-content-wrapper {
+            padding: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+        }
+        .leaflet-popup-content {
+            margin: 0 !important;
+            width: 340px !important;
+        }
+        .popup-header {
+            background: linear-gradient(135deg, #0d47a1 0%, #1976d2 100%);
+            color: white;
+            padding: 16px !important;
+        }
+        .popup-body {
+            padding: 12px 16px !important;
+            background: #fff;
+        }
+        .popup-field-row:last-child {
+            border-bottom: none !important;
+            padding-bottom: 4px;
+        }
+
+        /* Compact Colatilla / Abstract Styles */
+        .abstractUncollapsed {
+            max-width: 280px;
+            background: rgba(255, 255, 255, 0.9);
+            backdrop-filter: blur(4px);
+            padding: 6px 10px;
+            border-radius: 8px;
+            border: 1px solid rgba(0,0,0,0.1);
+            font-size: 11px;
+            transition: all 0.3s ease;
+            cursor: help;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        }
+        .abstractUncollapsed ol {
+            margin: 5px 0 0 18px;
+            padding: 0;
+            display: none; /* Hide list by default */
+        }
+        .abstractUncollapsed:hover ol {
+            display: block; /* Show list on hover */
+        }
+
+        /* Center Title Repositioning */
+        .map-title-control {
+            position: fixed !important;
+            left: 50%;
+            transform: translateX(-50%);
+            top: 10px;
+            margin: 0 !important;
+            z-index: 1000;
+            white-space: nowrap;
         }
         </style>
         <title></title>
@@ -72,9 +128,10 @@
     <!-- Loading Overlay -->
     <div id="loading-overlay">
         <img src="images/mgblogo.png" height=200 width=200>
-        <p id="loading-text">REGIONAL OFFICE NO. III</p>
-        <p id="loading-text">Loading Tenement Map....</p>
+        <p class="loading-text">REGIONAL OFFICE NO. III</p>
+        <p class="loading-text text-muted">Loading Tenement Map....</p>
         <div class="spinner"></div>  
+        <p class="loading-text text-muted"><i>Best viewed using a desktop browser</i></p>
     </div>
 
 
@@ -93,32 +150,41 @@
         <script src="js/rbush.min.js"></script>
         <script src="js/labelgun.min.js"></script>
         <script src="js/labels.js"></script>
-        <script src="js/leaflet-control-geocoder.Geocoder.js"></script>
+        <script src="js/leaflet.photon.js"></script>
         <script src="js/leaflet-measure.js"></script>
         <script src="data/PROCProclamation_4.js"></script>
         <script src="data/MPSAMineralProductionSharingAgreement_5.js"></script>
         <script src="data/MPPMineralProcessingPermits_6.js"></script>
         <script src="data/ISGPIndustrialSandAndGravelPermit_7.js"></script>
         <script src="data/IPAIndustrialSandAndGravelPermitApplication_8.js"></script>
-        <script src="data/GSQPGovernmentSeabedQuarryPermitApplication_9.js"></script>
-        <script src="data/EXPAExplorationPermitApplication_10.js"></script>
-        <script src="data/EPExplorationPermit_11.js"></script>
-        <script src="data/DREDGDredgingFiledAtDPWH_12.js"></script>
-        <script src="data/CACertificateOfAccreditationWithDredgingClearance_13.js"></script>
-        <script src="data/ASMEPApplicationForSpecialMineralExtractionPermit_14.js"></script>
-        <script src="data/APSAApplicationForProductionSharingAgreement_15.js"></script>
-        <script src="data/AFTAApplicationForFinancialTechnicalAssitance_16.js"></script>
+        <script src="data/GSQPAGovernmentSeabedQuarryPermitApplication_9.js"></script>
+        <script src="data/GSQPGovernmentSeabedQuarryPermit_10.js"></script>
+        <script src="data/EXPAExplorationPermitApplication_11.js"></script>
+        <script src="data/EPExplorationPermit_12.js"></script>
+        <script src="data/DREDGDredgingFiledAtDPWH_13.js"></script>
+        <script src="data/CACertificateOfAccreditationWithDredgingClearance_14.js"></script>
+        <script src="data/ASMEPApplicationForSpecialMineralExtractionPermit_15.js"></script>
+        <script src="data/APSAApplicationForProductionSharingAgreement_16.js"></script>
+        <script src="data/AFTAApplicationForFinancialTechnicalAssistance_17.js"></script>
+
         <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
         <script>
-
-            
-        // Show loading screen for 5 seconds before displaying the map
-        setTimeout(() => {
-            document.getElementById('loading-overlay').style.display = 'none';
-            document.getElementById('map').style.display = 'block';
+        
+        // Initialize map immediately
+        document.addEventListener("DOMContentLoaded", function() {
             initializeMap();
-        }, 5000);
+        });
+
+        // Hide loading screen when window is ready
+        window.addEventListener("load", function() {
+            // Small timeout to ensure the user sees the logo/branding briefly
+            setTimeout(() => {
+                document.getElementById('loading-overlay').style.transition = 'opacity 0.5s';
+                document.getElementById('loading-overlay').style.opacity = '0';
+                setTimeout(() => document.getElementById('loading-overlay').style.display = 'none', 500);
+            }, 2000);
+        });
 
 
     function initializeMap() {
@@ -146,31 +212,24 @@
         var hash = new L.Hash(map);
         map.attributionControl.setPrefix(' Developed using Leaflet | MGB Region 3 | Mine Management Division | Survey Section ');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
-        // remove popup's row if "visible-with-data"
-        function removeEmptyRowsFromPopupContent(content, feature) {
-         var tempDiv = document.createElement('div');
-         tempDiv.innerHTML = content;
-         var rows = tempDiv.querySelectorAll('tr');
-         for (var i = 0; i < rows.length; i++) {
-             var td = rows[i].querySelector('td.visible-with-data');
-             var key = td ? td.id : '';
-             if (td && td.classList.contains('visible-with-data') && feature.properties[key] == null) {
-                 rows[i].parentNode.removeChild(rows[i]);
-             }
-         }
-         return tempDiv.innerHTML;
-        }
 
                 //Title
                 var title = new L.Control();
             title.onAdd = function (map) {
-                this._div = L.DomUtil.create('div', 'info');
+                this._div = L.DomUtil.create('div', 'map-title-control');
                 this.update();
                 return this._div;
             };
 
             title.update = function () {
-                this._div.innerHTML = '<table><tr class="d-flex align-items-center"><td style="text-align: center;" class="p-2"><img src="images/mgblogo.png" width="40" height="40" alt="Logo"></td><td class="p-2"><p class="mb-0">REGION 3 MINING TENEMENT CONTROL MAP<br>data as of February 2025</p></td></tr></table>'
+                this._div.innerHTML = `
+                    <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
+                        <img src="images/mgblogo.png" width="40" height="40" class="me-2" alt="Logo">
+                        <div>
+                            <h6 class="mb-0 fw-bold">REGION 3 MINING TENEMENT CONTROL MAP</h6>
+                            <small class="text-muted text-uppercase">Data as of March 2026</small>
+                        </div>
+                    </div>`;
             };
 
             title.addTo(map);
@@ -262,7 +321,57 @@
         });
         layer_EsriDarkGray_3;
         map.addLayer(layer_EsriDarkGray_3);
-        function pop_PROCProclamation_4(feature, layer) {
+
+        // Modernized Reusable Popup Generator
+        function generatePopupContent(feature) {
+            const fieldLabels = {
+                'Seq': 'Sequence',
+                'Tenement_N': 'Permit Number',
+                'Parcel': 'Parcel',
+                'Tene_Type': 'Tenement Type',
+                'Holder': 'Holder / Company',
+                'Area': 'Area (Hectares)',
+                'Municipali': 'Municipality',
+                'Province': 'Province',
+                'Region': 'Region',
+                'Commodity': 'Commodity'
+            };
+
+            const title = feature.properties['Tenement_N'] || 'Tenement Details';
+            const subtitle = feature.properties['Holder'] || 'Information Summary';
+
+            let bodyRows = '';
+            Object.entries(fieldLabels).forEach(([key, label]) => {
+                const val = feature.properties[key];
+                if (val !== null && val !== undefined && String(val).trim() !== "") {
+                    const linkedVal = autolinker.link(String(val).toLocaleString());
+                    bodyRows += `
+                        <div class="row gx-0 py-2 border-bottom popup-field-row align-items-center">
+                            <div class="col-5">
+                                <span class="text-muted fw-bold text-uppercase" style="font-size: 0.72rem; letter-spacing: 0.03em;">${label}</span>
+                            </div>
+                            <div class="col-7 text-end">
+                                <span class="fw-bold text-dark" style="font-size: 0.95rem;">${linkedVal}</span>
+                            </div>
+                        </div>`;
+                }
+            });
+
+            return `
+                <div class="modern-popup">
+                    <div class="popup-header">
+                        <h6 class="mb-1 fw-bold" style="font-size: 1.05rem;">${title}</h6>
+                        <div class="opacity-75 fw-light" style="font-size: 0.82rem;">${subtitle}</div>
+                    </div>
+                    <div class="popup-body">
+                        <div class="container-fluid p-0">
+                            ${bodyRows || '<div class="text-center py-2 text-muted fst-italic">No permit data found</div>'}
+                        </div>
+                    </div>
+                </div>`;
+        }
+
+        function handleLayerEvents(feature, layer) {
             layer.on({
                 mouseout: function(e) {
                     for (var i in e.target._eventParents) {
@@ -273,80 +382,27 @@
                 },
                 mouseover: highlightFeature,
             });
-
-
-
-
-
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
+            var content = generatePopupContent(feature);
 			layer.on('popupopen', function(e) {
 				addClassToPopupIfMedia(content, e.popup);
 			});
-			layer.bindPopup(content, { maxHeight: 400 });
+			layer.bindPopup(content, { maxHeight: 450, minWidth: 320 });
         }
+
+        function pop_PROCProclamation_4(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_MPSAMineralProductionSharingAgreement_5(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_MPPMineralProcessingPermits_6(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_ISGPIndustrialSandAndGravelPermit_7(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_IPAIndustrialSandAndGravelPermitApplication_8(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_GSQPAGovernmentSeabedQuarryPermitApplication_9(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_GSQPGovernmentSeabedQuarryPermit_10(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_EXPAExplorationPermitApplication_11(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_EPExplorationPermit_12(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_DREDGDredgingFiledAtDPWH_13(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_CACertificateOfAccreditationWithDredgingClearance_14(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_ASMEPApplicationForSpecialMineralExtractionPermit_15(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_APSAApplicationForProductionSharingAgreement_16(feature, layer) { handleLayerEvents(feature, layer); }
+        function pop_AFTAApplicationForFinancialTechnicalAssistance_17(feature, layer) { handleLayerEvents(feature, layer); }
 
         function style_PROCProclamation_4_0() {
             return {
@@ -411,87 +467,6 @@
         });
         bounds_group.addLayer(layer_PROCProclamation_4);
         map.addLayer(layer_PROCProclamation_4);
-        function pop_MPSAMineralProductionSharingAgreement_5(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
         function style_MPSAMineralProductionSharingAgreement_5_0() {
             return {
                 pane: 'pane_MPSAMineralProductionSharingAgreement_5',
@@ -521,87 +496,6 @@
         });
         bounds_group.addLayer(layer_MPSAMineralProductionSharingAgreement_5);
         map.addLayer(layer_MPSAMineralProductionSharingAgreement_5);
-        function pop_MPPMineralProcessingPermits_6(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
         function style_MPPMineralProcessingPermits_6_0() {
             return {
                 pane: 'pane_MPPMineralProcessingPermits_6',
@@ -631,87 +525,6 @@
         });
         bounds_group.addLayer(layer_MPPMineralProcessingPermits_6);
         map.addLayer(layer_MPPMineralProcessingPermits_6);
-        function pop_ISGPIndustrialSandAndGravelPermit_7(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
         function style_ISGPIndustrialSandAndGravelPermit_7_0() {
             return {
                 pane: 'pane_ISGPIndustrialSandAndGravelPermit_7',
@@ -741,87 +554,6 @@
         });
         bounds_group.addLayer(layer_ISGPIndustrialSandAndGravelPermit_7);
         map.addLayer(layer_ISGPIndustrialSandAndGravelPermit_7);
-        function pop_IPAIndustrialSandAndGravelPermitApplication_8(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
         function style_IPAIndustrialSandAndGravelPermitApplication_8_0() {
             return {
                 pane: 'pane_IPAIndustrialSandAndGravelPermitApplication_8',
@@ -851,90 +583,39 @@
         });
         bounds_group.addLayer(layer_IPAIndustrialSandAndGravelPermitApplication_8);
         map.addLayer(layer_IPAIndustrialSandAndGravelPermitApplication_8);
-        function pop_GSQPGovernmentSeabedQuarryPermitApplication_9(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_GSQPGovernmentSeabedQuarryPermitApplication_9_0() {
+        function style_GSQPAGovernmentSeabedQuarryPermitApplication_9_0() {
             return {
-                pane: 'pane_GSQPGovernmentSeabedQuarryPermitApplication_9',
+                pane: 'pane_GSQPAGovernmentSeabedQuarryPermitApplication_9',
+                opacity: 1,
+                color: 'rgba(35,35,35,0.5)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,104,0,0.5)',
+                interactive: true,
+            }
+        }
+        map.createPane('pane_GSQPAGovernmentSeabedQuarryPermitApplication_9');
+        map.getPane('pane_GSQPAGovernmentSeabedQuarryPermitApplication_9').style.zIndex = 409;
+        map.getPane('pane_GSQPAGovernmentSeabedQuarryPermitApplication_9').style['mix-blend-mode'] = 'normal';
+        var layer_GSQPAGovernmentSeabedQuarryPermitApplication_9 = new L.geoJson(json_GSQPAGovernmentSeabedQuarryPermitApplication_9, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_GSQPAGovernmentSeabedQuarryPermitApplication_9',
+            layerName: 'layer_GSQPAGovernmentSeabedQuarryPermitApplication_9',
+            pane: 'pane_GSQPAGovernmentSeabedQuarryPermitApplication_9',
+            onEachFeature: pop_GSQPAGovernmentSeabedQuarryPermitApplication_9,
+            style: style_GSQPAGovernmentSeabedQuarryPermitApplication_9_0,
+        });
+        bounds_group.addLayer(layer_GSQPAGovernmentSeabedQuarryPermitApplication_9);
+        map.addLayer(layer_GSQPAGovernmentSeabedQuarryPermitApplication_9);
+
+        function style_GSQPGovernmentSeabedQuarryPermit_10_0() {
+            return {
+                pane: 'pane_GSQPGovernmentSeabedQuarryPermit_10',
                 opacity: 1,
                 color: 'rgba(210,105,30,0.5)',
                 dashArray: '',
@@ -947,104 +628,24 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_GSQPGovernmentSeabedQuarryPermitApplication_9');
-        map.getPane('pane_GSQPGovernmentSeabedQuarryPermitApplication_9').style.zIndex = 409;
-        map.getPane('pane_GSQPGovernmentSeabedQuarryPermitApplication_9').style['mix-blend-mode'] = 'normal';
-        var layer_GSQPGovernmentSeabedQuarryPermitApplication_9 = new L.geoJson(json_GSQPGovernmentSeabedQuarryPermitApplication_9, {
+        map.createPane('pane_GSQPGovernmentSeabedQuarryPermit_10');
+        map.getPane('pane_GSQPGovernmentSeabedQuarryPermit_10').style.zIndex = 410;
+        map.getPane('pane_GSQPGovernmentSeabedQuarryPermit_10').style['mix-blend-mode'] = 'normal';
+        var layer_GSQPGovernmentSeabedQuarryPermit_10 = new L.geoJson(json_GSQPGovernmentSeabedQuarryPermit_10, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_GSQPGovernmentSeabedQuarryPermitApplication_9',
-            layerName: 'layer_GSQPGovernmentSeabedQuarryPermitApplication_9',
-            pane: 'pane_GSQPGovernmentSeabedQuarryPermitApplication_9',
-            onEachFeature: pop_GSQPGovernmentSeabedQuarryPermitApplication_9,
-            style: style_GSQPGovernmentSeabedQuarryPermitApplication_9_0,
+            dataVar: 'json_GSQPGovernmentSeabedQuarryPermit_10',
+            layerName: 'layer_GSQPGovernmentSeabedQuarryPermit_10',
+            pane: 'pane_GSQPGovernmentSeabedQuarryPermit_10',
+            onEachFeature: pop_GSQPGovernmentSeabedQuarryPermit_10,
+            style: style_GSQPGovernmentSeabedQuarryPermit_10_0,
         });
-        bounds_group.addLayer(layer_GSQPGovernmentSeabedQuarryPermitApplication_9);
-        map.addLayer(layer_GSQPGovernmentSeabedQuarryPermitApplication_9);
-        function pop_EXPAExplorationPermitApplication_10(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        bounds_group.addLayer(layer_GSQPGovernmentSeabedQuarryPermit_10);
+        map.addLayer(layer_GSQPGovernmentSeabedQuarryPermit_10);
 
-        function style_EXPAExplorationPermitApplication_10_0() {
+        function style_EXPAExplorationPermitApplication_11_0() {
             return {
-                pane: 'pane_EXPAExplorationPermitApplication_10',
+                pane: 'pane_EXPAExplorationPermitApplication_11',
                 opacity: 1,
                 color: 'rgba(35,35,35,0.5)',
                 dashArray: '',
@@ -1057,104 +658,23 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_EXPAExplorationPermitApplication_10');
-        map.getPane('pane_EXPAExplorationPermitApplication_10').style.zIndex = 410;
-        map.getPane('pane_EXPAExplorationPermitApplication_10').style['mix-blend-mode'] = 'normal';
-        var layer_EXPAExplorationPermitApplication_10 = new L.geoJson(json_EXPAExplorationPermitApplication_10, {
+        map.createPane('pane_EXPAExplorationPermitApplication_11');
+        map.getPane('pane_EXPAExplorationPermitApplication_11').style.zIndex = 411;
+        map.getPane('pane_EXPAExplorationPermitApplication_11').style['mix-blend-mode'] = 'normal';
+        var layer_EXPAExplorationPermitApplication_11 = new L.geoJson(json_EXPAExplorationPermitApplication_11, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_EXPAExplorationPermitApplication_10',
-            layerName: 'layer_EXPAExplorationPermitApplication_10',
-            pane: 'pane_EXPAExplorationPermitApplication_10',
-            onEachFeature: pop_EXPAExplorationPermitApplication_10,
-            style: style_EXPAExplorationPermitApplication_10_0,
+            dataVar: 'json_EXPAExplorationPermitApplication_11',
+            layerName: 'layer_EXPAExplorationPermitApplication_11',
+            pane: 'pane_EXPAExplorationPermitApplication_11',
+            onEachFeature: pop_EXPAExplorationPermitApplication_11,
+            style: style_EXPAExplorationPermitApplication_11_0,
         });
-        bounds_group.addLayer(layer_EXPAExplorationPermitApplication_10);
-        map.addLayer(layer_EXPAExplorationPermitApplication_10);
-        function pop_EPExplorationPermit_11(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_EPExplorationPermit_11_0() {
+        bounds_group.addLayer(layer_EXPAExplorationPermitApplication_11);
+        map.addLayer(layer_EXPAExplorationPermitApplication_11);
+        function style_EPExplorationPermit_12_0() {
             return {
-                pane: 'pane_EPExplorationPermit_11',
+                pane: 'pane_EPExplorationPermit_12',
                 opacity: 1,
                 color: 'rgba(35,35,35,0.5)',
                 dashArray: '',
@@ -1163,108 +683,28 @@
                 weight: 1.0, 
                 fill: true,
                 fillOpacity: 1,
-                fillColor: 'rgba(0,100,0,0.5)',
+                fillColor: 'rgba(51,160,44,0.5)',
                 interactive: true,
             }
         }
-        map.createPane('pane_EPExplorationPermit_11');
-        map.getPane('pane_EPExplorationPermit_11').style.zIndex = 411;
-        map.getPane('pane_EPExplorationPermit_11').style['mix-blend-mode'] = 'normal';
-        var layer_EPExplorationPermit_11 = new L.geoJson(json_EPExplorationPermit_11, {
+        map.createPane('pane_EPExplorationPermit_12');
+        map.getPane('pane_EPExplorationPermit_12').style.zIndex = 412;
+        map.getPane('pane_EPExplorationPermit_12').style['mix-blend-mode'] = 'normal';
+        var layer_EPExplorationPermit_12 = new L.geoJson(json_EPExplorationPermit_12, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_EPExplorationPermit_11',
-            layerName: 'layer_EPExplorationPermit_11',
-            pane: 'pane_EPExplorationPermit_11',
-            onEachFeature: pop_EPExplorationPermit_11,
-            style: style_EPExplorationPermit_11_0,
+            dataVar: 'json_EPExplorationPermit_12',
+            layerName: 'layer_EPExplorationPermit_12',
+            pane: 'pane_EPExplorationPermit_12',
+            onEachFeature: pop_EPExplorationPermit_12,
+            style: style_EPExplorationPermit_12_0,
         });
-        bounds_group.addLayer(layer_EPExplorationPermit_11);
-        map.addLayer(layer_EPExplorationPermit_11);
-        function pop_DREDGDredgingFiledAtDPWH_12(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        bounds_group.addLayer(layer_EPExplorationPermit_12);
+        map.addLayer(layer_EPExplorationPermit_12);
 
-        function style_DREDGDredgingFiledAtDPWH_12_0() {
+        function style_DREDGDredgingFiledAtDPWH_13_0() {
             return {
-                pane: 'pane_DREDGDredgingFiledAtDPWH_12',
+                pane: 'pane_DREDGDredgingFiledAtDPWH_13',
                 opacity: 1,
                 color: 'rgba(0,0,255,0.5)',
                 dashArray: '',
@@ -1275,104 +715,24 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_DREDGDredgingFiledAtDPWH_12');
-        map.getPane('pane_DREDGDredgingFiledAtDPWH_12').style.zIndex = 412;
-        map.getPane('pane_DREDGDredgingFiledAtDPWH_12').style['mix-blend-mode'] = 'normal';
-        var layer_DREDGDredgingFiledAtDPWH_12 = new L.geoJson(json_DREDGDredgingFiledAtDPWH_12, {
+        map.createPane('pane_DREDGDredgingFiledAtDPWH_13');
+        map.getPane('pane_DREDGDredgingFiledAtDPWH_13').style.zIndex = 413;
+        map.getPane('pane_DREDGDredgingFiledAtDPWH_13').style['mix-blend-mode'] = 'normal';
+        var layer_DREDGDredgingFiledAtDPWH_13 = new L.geoJson(json_DREDGDredgingFiledAtDPWH_13, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_DREDGDredgingFiledAtDPWH_12',
-            layerName: 'layer_DREDGDredgingFiledAtDPWH_12',
-            pane: 'pane_DREDGDredgingFiledAtDPWH_12',
-            onEachFeature: pop_DREDGDredgingFiledAtDPWH_12,
-            style: style_DREDGDredgingFiledAtDPWH_12_0,
+            dataVar: 'json_DREDGDredgingFiledAtDPWH_13',
+            layerName: 'layer_DREDGDredgingFiledAtDPWH_13',
+            pane: 'pane_DREDGDredgingFiledAtDPWH_13',
+            onEachFeature: pop_DREDGDredgingFiledAtDPWH_13,
+            style: style_DREDGDredgingFiledAtDPWH_13_0,
         });
-        bounds_group.addLayer(layer_DREDGDredgingFiledAtDPWH_12);
-        map.addLayer(layer_DREDGDredgingFiledAtDPWH_12);
-        function pop_CACertificateOfAccreditationWithDredgingClearance_13(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        bounds_group.addLayer(layer_DREDGDredgingFiledAtDPWH_13);
+        map.addLayer(layer_DREDGDredgingFiledAtDPWH_13);
 
-        function style_CACertificateOfAccreditationWithDredgingClearance_13_0() {
+        function style_CACertificateOfAccreditationWithDredgingClearance_14_0() {
             return {
-                pane: 'pane_CACertificateOfAccreditationWithDredgingClearance_13',
+                pane: 'pane_CACertificateOfAccreditationWithDredgingClearance_14',
                 opacity: 1,
                 color: 'rgba(255,140,0,0.5)',
                 dashArray: '',
@@ -1383,104 +743,24 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_CACertificateOfAccreditationWithDredgingClearance_13');
-        map.getPane('pane_CACertificateOfAccreditationWithDredgingClearance_13').style.zIndex = 413;
-        map.getPane('pane_CACertificateOfAccreditationWithDredgingClearance_13').style['mix-blend-mode'] = 'normal';
-        var layer_CACertificateOfAccreditationWithDredgingClearance_13 = new L.geoJson(json_CACertificateOfAccreditationWithDredgingClearance_13, {
+        map.createPane('pane_CACertificateOfAccreditationWithDredgingClearance_14');
+        map.getPane('pane_CACertificateOfAccreditationWithDredgingClearance_14').style.zIndex = 414;
+        map.getPane('pane_CACertificateOfAccreditationWithDredgingClearance_14').style['mix-blend-mode'] = 'normal';
+        var layer_CACertificateOfAccreditationWithDredgingClearance_14 = new L.geoJson(json_CACertificateOfAccreditationWithDredgingClearance_14, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_CACertificateOfAccreditationWithDredgingClearance_13',
-            layerName: 'layer_CACertificateOfAccreditationWithDredgingClearance_13',
-            pane: 'pane_CACertificateOfAccreditationWithDredgingClearance_13',
-            onEachFeature: pop_CACertificateOfAccreditationWithDredgingClearance_13,
-            style: style_CACertificateOfAccreditationWithDredgingClearance_13_0,
+            dataVar: 'json_CACertificateOfAccreditationWithDredgingClearance_14',
+            layerName: 'layer_CACertificateOfAccreditationWithDredgingClearance_14',
+            pane: 'pane_CACertificateOfAccreditationWithDredgingClearance_14',
+            onEachFeature: pop_CACertificateOfAccreditationWithDredgingClearance_14,
+            style: style_CACertificateOfAccreditationWithDredgingClearance_14_0,
         });
-        bounds_group.addLayer(layer_CACertificateOfAccreditationWithDredgingClearance_13);
-        map.addLayer(layer_CACertificateOfAccreditationWithDredgingClearance_13);
-        function pop_ASMEPApplicationForSpecialMineralExtractionPermit_14(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        bounds_group.addLayer(layer_CACertificateOfAccreditationWithDredgingClearance_14);
+        map.addLayer(layer_CACertificateOfAccreditationWithDredgingClearance_14);
 
-        function style_ASMEPApplicationForSpecialMineralExtractionPermit_14_0() {
+        function style_ASMEPApplicationForSpecialMineralExtractionPermit_15_0() {
             return {
-                pane: 'pane_ASMEPApplicationForSpecialMineralExtractionPermit_14',
+                pane: 'pane_ASMEPApplicationForSpecialMineralExtractionPermit_15',
                 opacity: 1,
                 color: 'rgba(255,0,0,0.5)',
                 dashArray: '',
@@ -1493,104 +773,24 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_14');
-        map.getPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_14').style.zIndex = 414;
-        map.getPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_14').style['mix-blend-mode'] = 'normal';
-        var layer_ASMEPApplicationForSpecialMineralExtractionPermit_14 = new L.geoJson(json_ASMEPApplicationForSpecialMineralExtractionPermit_14, {
+        map.createPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_15');
+        map.getPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_15').style.zIndex = 415;
+        map.getPane('pane_ASMEPApplicationForSpecialMineralExtractionPermit_15').style['mix-blend-mode'] = 'normal';
+        var layer_ASMEPApplicationForSpecialMineralExtractionPermit_15 = new L.geoJson(json_ASMEPApplicationForSpecialMineralExtractionPermit_15, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_ASMEPApplicationForSpecialMineralExtractionPermit_14',
-            layerName: 'layer_ASMEPApplicationForSpecialMineralExtractionPermit_14',
-            pane: 'pane_ASMEPApplicationForSpecialMineralExtractionPermit_14',
-            onEachFeature: pop_ASMEPApplicationForSpecialMineralExtractionPermit_14,
-            style: style_ASMEPApplicationForSpecialMineralExtractionPermit_14_0,
+            dataVar: 'json_ASMEPApplicationForSpecialMineralExtractionPermit_15',
+            layerName: 'layer_ASMEPApplicationForSpecialMineralExtractionPermit_15',
+            pane: 'pane_ASMEPApplicationForSpecialMineralExtractionPermit_15',
+            onEachFeature: pop_ASMEPApplicationForSpecialMineralExtractionPermit_15,
+            style: style_ASMEPApplicationForSpecialMineralExtractionPermit_15_0,
         });
-        bounds_group.addLayer(layer_ASMEPApplicationForSpecialMineralExtractionPermit_14);
-        map.addLayer(layer_ASMEPApplicationForSpecialMineralExtractionPermit_14);
-        function pop_APSAApplicationForProductionSharingAgreement_15(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
+        bounds_group.addLayer(layer_ASMEPApplicationForSpecialMineralExtractionPermit_15);
+        map.addLayer(layer_ASMEPApplicationForSpecialMineralExtractionPermit_15);
 
-        function style_APSAApplicationForProductionSharingAgreement_15_0() {
+        function style_APSAApplicationForProductionSharingAgreement_16_0() {
             return {
-                pane: 'pane_APSAApplicationForProductionSharingAgreement_15',
+                pane: 'pane_APSAApplicationForProductionSharingAgreement_16',
                 opacity: 1,
                 color: 'rgba(35,35,35,0.5)',
                 dashArray: '',
@@ -1603,104 +803,23 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_APSAApplicationForProductionSharingAgreement_15');
-        map.getPane('pane_APSAApplicationForProductionSharingAgreement_15').style.zIndex = 415;
-        map.getPane('pane_APSAApplicationForProductionSharingAgreement_15').style['mix-blend-mode'] = 'normal';
-        var layer_APSAApplicationForProductionSharingAgreement_15 = new L.geoJson(json_APSAApplicationForProductionSharingAgreement_15, {
+        map.createPane('pane_APSAApplicationForProductionSharingAgreement_16');
+        map.getPane('pane_APSAApplicationForProductionSharingAgreement_16').style.zIndex = 416;
+        map.getPane('pane_APSAApplicationForProductionSharingAgreement_16').style['mix-blend-mode'] = 'normal';
+        var layer_APSAApplicationForProductionSharingAgreement_16 = new L.geoJson(json_APSAApplicationForProductionSharingAgreement_16, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_APSAApplicationForProductionSharingAgreement_15',
-            layerName: 'layer_APSAApplicationForProductionSharingAgreement_15',
-            pane: 'pane_APSAApplicationForProductionSharingAgreement_15',
-            onEachFeature: pop_APSAApplicationForProductionSharingAgreement_15,
-            style: style_APSAApplicationForProductionSharingAgreement_15_0,
+            dataVar: 'json_APSAApplicationForProductionSharingAgreement_16',
+            layerName: 'layer_APSAApplicationForProductionSharingAgreement_16',
+            pane: 'pane_APSAApplicationForProductionSharingAgreement_16',
+            onEachFeature: pop_APSAApplicationForProductionSharingAgreement_16,
+            style: style_APSAApplicationForProductionSharingAgreement_16_0,
         });
-        bounds_group.addLayer(layer_APSAApplicationForProductionSharingAgreement_15);
-        map.addLayer(layer_APSAApplicationForProductionSharingAgreement_15);
-        function pop_AFTAApplicationForFinancialTechnicalAssitance_16(feature, layer) {
-            layer.on({
-                mouseout: function(e) {
-                    for (var i in e.target._eventParents) {
-                        if (typeof e.target._eventParents[i].resetStyle === 'function') {
-                            e.target._eventParents[i].resetStyle(e.target);
-                        }
-                    }
-                },
-                mouseover: highlightFeature,
-            });
-            var popupContent = '<div class="table-responsive">\
-                        <table class="table table-bordered table-hover">\
-                            <thead>\
-                                <tr>\
-                                    <th colspan="2" class="text-center"><h6><b>' + (feature.properties['Holder'] !== null ? autolinker.link(feature.properties['Holder'].toLocaleString()) : '') + '</b></h6></th>\
-                                </tr>\
-                            </thead>\
-                            <tbody>\
-                                <tr>\
-                                    <th scope="row">Sequence</th>\
-                                    <td>' + (feature.properties['Seq'] !== null ? autolinker.link(feature.properties['Seq'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Number</th>\
-                                    <td>' + (feature.properties['Tenement_N'] !== null ? autolinker.link(feature.properties['Tenement_N'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Parcel</th>\
-                                    <td>' + (feature.properties['Parcel'] !== null ? autolinker.link(feature.properties['Parcel'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Tenement Type</th>\
-                                    <td>' + (feature.properties['Tene_Type'] !== null ? autolinker.link(feature.properties['Tene_Type'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Area</th>\
-                                    <td>' + (feature.properties['Area'] !== null ? autolinker.link(feature.properties['Area'].toLocaleString()) : '') + ' hectares</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Filed</th>\
-                                    <td>' + (feature.properties['Date_Filed'] !== null ? autolinker.link(feature.properties['Date_Filed'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Date Approved</th>\
-                                    <td>' + (feature.properties['Date_Appro'] !== null ? autolinker.link(feature.properties['Date_Appro'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">City / Municipality</th>\
-                                    <td>' + (feature.properties['Municipali'] !== null ? autolinker.link(feature.properties['Municipali'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Province</th>\
-                                    <td>' + (feature.properties['Province'] !== null ? autolinker.link(feature.properties['Province'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Region</th>\
-                                    <td>' + (feature.properties['Region'] !== null ? autolinker.link(feature.properties['Region'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Commodity</th>\
-                                    <td>' + (feature.properties['Commodity'] !== null ? autolinker.link(feature.properties['Commodity'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Approved</th>\
-                                    <td>' + (feature.properties['Approved'] !== null ? autolinker.link(feature.properties['Approved'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                                <tr>\
-                                    <th scope="row">Mineral Reservation</th>\
-                                    <td>' + (feature.properties['MI_Resrv'] !== null ? autolinker.link(feature.properties['MI_Resrv'].toLocaleString()) : '') + '</td>\
-                                </tr>\
-                            </tbody>\
-                        </table>\
-                    </div>';
-            var content = removeEmptyRowsFromPopupContent(popupContent, feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 400 });
-        }
-
-        function style_AFTAApplicationForFinancialTechnicalAssitance_16_0() {
+        bounds_group.addLayer(layer_APSAApplicationForProductionSharingAgreement_16);
+        map.addLayer(layer_APSAApplicationForProductionSharingAgreement_16);
+        function style_AFTAApplicationForFinancialTechnicalAssistance_17_0() {
             return {
-                pane: 'pane_AFTAApplicationForFinancialTechnicalAssitance_16',
+                pane: 'pane_AFTAApplicationForFinancialTechnicalAssistance_17',
                 opacity: 1,
                 color: 'rgba(35,35,35,0.5)',
                 dashArray: '',
@@ -1713,44 +832,31 @@
                 interactive: true,
             }
         }
-        map.createPane('pane_AFTAApplicationForFinancialTechnicalAssitance_16');
-        map.getPane('pane_AFTAApplicationForFinancialTechnicalAssitance_16').style.zIndex = 416;
-        map.getPane('pane_AFTAApplicationForFinancialTechnicalAssitance_16').style['mix-blend-mode'] = 'normal';
-        var layer_AFTAApplicationForFinancialTechnicalAssitance_16 = new L.geoJson(json_AFTAApplicationForFinancialTechnicalAssitance_16, {
+        map.createPane('pane_AFTAApplicationForFinancialTechnicalAssistance_17');
+        map.getPane('pane_AFTAApplicationForFinancialTechnicalAssistance_17').style.zIndex = 417;
+        map.getPane('pane_AFTAApplicationForFinancialTechnicalAssistance_17').style['mix-blend-mode'] = 'normal';
+        var layer_AFTAApplicationForFinancialTechnicalAssistance_17 = new L.geoJson(json_AFTAApplicationForFinancialTechnicalAssistance_17, {
             attribution: '',
             interactive: true,
-            dataVar: 'json_AFTAApplicationForFinancialTechnicalAssitance_16',
-            layerName: 'layer_AFTAApplicationForFinancialTechnicalAssitance_16',
-            pane: 'pane_AFTAApplicationForFinancialTechnicalAssitance_16',
-            onEachFeature: pop_AFTAApplicationForFinancialTechnicalAssitance_16,
-            style: style_AFTAApplicationForFinancialTechnicalAssitance_16_0,
+            dataVar: 'json_AFTAApplicationForFinancialTechnicalAssistance_17',
+            layerName: 'layer_AFTAApplicationForFinancialTechnicalAssistance_17',
+            pane: 'pane_AFTAApplicationForFinancialTechnicalAssistance_17',
+            onEachFeature: pop_AFTAApplicationForFinancialTechnicalAssistance_17,
+            style: style_AFTAApplicationForFinancialTechnicalAssistance_17_0,
         });
-        bounds_group.addLayer(layer_AFTAApplicationForFinancialTechnicalAssitance_16);
-        map.addLayer(layer_AFTAApplicationForFinancialTechnicalAssitance_16);
-        var osmGeocoder = new L.Control.Geocoder({
-            collapsed: true,
-            position: 'topleft',
-            text: 'Search',
-            title: 'Testing'
-        }).addTo(map);
-        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
-        .className += ' fa fa-search';
-        document.getElementsByClassName('leaflet-control-geocoder-icon')[0]
-        .title += 'Search for a place';
-
-
-        //Legend
+        bounds_group.addLayer(layer_AFTAApplicationForFinancialTechnicalAssistance_17);
+        map.addLayer(layer_AFTAApplicationForFinancialTechnicalAssistance_17);
         var overlaysTree = [
-        {label: '<h4>LEGEND</h4>'},
-        {label: '<b>Show/Hide All</b>', selectAllCheckbox: true, children: [
-            {label: '<img src="legend/AFTAApplicationForFinancialTechnicalAssitance_16.png" /> AFTA Application For Financial Technical Assitance', layer: layer_AFTAApplicationForFinancialTechnicalAssitance_16},
-            {label: '<img src="legend/APSAApplicationForProductionSharingAgreement_15.png" /> APSA Application For Production Sharing Agreement', layer: layer_APSAApplicationForProductionSharingAgreement_15},
-            {label: '<img src="legend/ASMEPApplicationForSpecialMineralExtractionPermit_14.png" /> ASMEP Application For Special Mineral Extraction Permit', layer: layer_ASMEPApplicationForSpecialMineralExtractionPermit_14},
-            {label: '<img src="legend/CACertificateOfAccreditationWithDredgingClearance_13.png" /> CA Certificate Of Accreditation With Dredging Clearance', layer: layer_CACertificateOfAccreditationWithDredgingClearance_13},
-            {label: '<img src="legend/DREDGDredgingFiledAtDPWH_12.png" /> DREDG Dredging Filed At DPWH', layer: layer_DREDGDredgingFiledAtDPWH_12},
-            {label: '<img src="legend/EPExplorationPermit_11.png" /> EP Exploration Permit', layer: layer_EPExplorationPermit_11},
-            {label: '<img src="legend/EXPAExplorationPermitApplication_10.png" /> EXPA Exploration Permit Application', layer: layer_EXPAExplorationPermitApplication_10},
-            {label: '<img src="legend/GSQPGovernmentSeabedQuarryPermitApplication_9.png" /> GSQP Government Seabed Quarry Permit Application', layer: layer_GSQPGovernmentSeabedQuarryPermitApplication_9},
+        {label: '<b>LEGEND: uncheck to hide tenements</b>',  selectAllCheckbox: false, children: [
+            {label: '<img src="legend/AFTAApplicationForFinancialTechnicalAssistance_17.png" /> AFTA Application For Financial Technical Assistance', layer: layer_AFTAApplicationForFinancialTechnicalAssistance_17},
+            {label: '<img src="legend/APSAApplicationForProductionSharingAgreement_16.png" /> APSA Application For Production Sharing Agreement', layer: layer_APSAApplicationForProductionSharingAgreement_16},
+            {label: '<img src="legend/ASMEPApplicationForSpecialMineralExtractionPermit_15.png" /> ASMEP Application For Special Mineral Extraction Permit', layer: layer_ASMEPApplicationForSpecialMineralExtractionPermit_15},
+            {label: '<img src="legend/CACertificateOfAccreditationWithDredgingClearance_14.png" /> CA Certificate Of Accreditation With Dredging Clearance', layer: layer_CACertificateOfAccreditationWithDredgingClearance_14},
+            {label: '<img src="legend/DREDGDredgingFiledAtDPWH_13.png" /> DREDG Dredging Filed At DPWH', layer: layer_DREDGDredgingFiledAtDPWH_13},
+            {label: '<img src="legend/EPExplorationPermit_12.png" /> EP Exploration Permit', layer: layer_EPExplorationPermit_12},
+            {label: '<img src="legend/EXPAExplorationPermitApplication_11.png" /> EXPA Exploration Permit Application', layer: layer_EXPAExplorationPermitApplication_11},
+            {label: '<img src="legend/GSQPGovernmentSeabedQuarryPermit_10.png" /> GSQP Government Seabed Quarry Permit', layer: layer_GSQPGovernmentSeabedQuarryPermit_10},
+            {label: '<img src="legend/GSQPAGovernmentSeabedQuarryPermitApplication_9.png" /> GSQPA Government Seabed Quarry Permit Application', layer: layer_GSQPAGovernmentSeabedQuarryPermitApplication_9},
             {label: '<img src="legend/IPAIndustrialSandAndGravelPermitApplication_8.png" /> IPA Industrial Sand And Gravel Permit Application', layer: layer_IPAIndustrialSandAndGravelPermitApplication_8},
             {label: '<img src="legend/ISGPIndustrialSandAndGravelPermit_7.png" /> ISGP Industrial Sand And Gravel Permit', layer: layer_ISGPIndustrialSandAndGravelPermit_7},
             {label: '<img src="legend/MPPMineralProcessingPermits_6.png" /> MPP Mineral Processing Permits', layer: layer_MPPMineralProcessingPermits_6},
@@ -1767,8 +873,9 @@
             //openedSymbol: '&#8863; &#x1f5c1;',
             //collapseAll: 'Collapse all',
             //expandAll: 'Expand all',
-            collapsed: true, 
+            collapsed: false, 
         });
+
         lay.addTo(map);
 		document.addEventListener("DOMContentLoaded", function() {
             // set new Layers List height which considers toggle icon
@@ -1837,13 +944,21 @@
                 abstract.show = function () {
                     this._div.classList.remove("abstract");
                     this._div.classList.add("abstractUncollapsed");
-                    this._div.innerHTML = 
-                    '<b>COLATTILLA</b>&nbsp<ol><li>Political Boundaries are not indicative</li> &nbsp <li>Map data are based on Survey Section Records.</li> &nbsp<li>This Map is not valid for litigation purposes.</li>&nbsp <li>Preplotted applications are not indicated in the map.</li></ol>';
+                    this._div.innerHTML = `
+                        <b class="text-danger" style="font-size: 10px; letter-spacing: 0.5px;">
+                            <i class="fas fa-info-circle me-1"></i> COLATTILLA (Hover for Disclaimer)
+                        </b>
+                        <ol class="text-muted">
+                            <li>Political Boundaries are not indicative</li>
+                            <li>Map data are based on Survey Section Records.</li>
+                            <li>This Map is not valid for litigation purposes.</li>
+                            <li>Preplotted applications are not indicated in the map.</li>
+                        </ol>`;
             };
             abstract.addTo(map);
 
             //North Arrow
-            var north = L.control({position: "bottomright"});
+            var north = L.control({position: "bottomleft"});
                     north.onAdd = function(map) {
                         var div = L.DomUtil.create("div", "info legend");
                         div.innerHTML = '<img src="images/north-arrow-n.svg" width="50" height="60">';
@@ -1851,11 +966,11 @@
                     }
                     north.addTo(map);
 
-            L.control.scale({position: "bottomright"}).addTo(map);
+            L.control.scale({position: "bottomleft"}).addTo(map);
 
 
             //coordinates display
-            var coordDisplay = L.control({ position: 'bottomright' });
+            var coordDisplay = L.control({ position: 'bottomleft' });
             coordDisplay.onAdd = function (map) {
                 this._div = L.DomUtil.create('div', 'leaflet-control-latlon');
                 this._div.style.padding = "5px";
@@ -1876,7 +991,6 @@
             map.on('mousemove', function (e) {
                 coordDisplay.update(e.latlng);
             });
-
         }
 
         
