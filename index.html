@@ -13,12 +13,98 @@
         <link rel="stylesheet" href="css/fontawesome-all.min.css">
         <link rel="stylesheet" href="css/leaflet-control-geocoder.Geocoder.css">
         <link rel="stylesheet" href="css/leaflet-measure.css">
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
         <style>
+        :root {
+            --sidebar-width: 380px;
+            --bottom-panel-height: 280px;
+            --primary-blue: #0d47a1;
+            --accent-gold: #ffc107;
+            --glass-bg: rgba(255, 255, 255, 0.9);
+            --bg-main: #f8f9fa;
+            --card-bg: #ffffff;
+            --text-color: #212529;
+            --border-color: #dee2e6;
+        }
+
+        [data-theme="dark"] {
+            --primary-blue: #1565c0;
+            --glass-bg: rgba(30, 30, 30, 0.9);
+            --bg-main: #121212;
+            --card-bg: #1e1e1e;
+            --text-color: #e0e0e0;
+            --border-color: #333333;
+        }
+
         html, body, #map {
             width: 100%;
             height: 100%;
             padding: 0;
             margin: 0;
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        /* Main App Layout */
+        #app-wrapper {
+            display: flex;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        #sidebar {
+            width: var(--sidebar-width);
+            flex-shrink: 0;
+            height: 100%;
+            background: #fdfdfd;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1001;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.05);
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        #sidebar.collapsed {
+            width: 0;
+            border-right: none;
+        }
+
+        #map-container {
+            flex-grow: 1;
+            position: relative;
+            height: 100%;
+        }
+
+        /* Right Sidebar for Details */
+        #details-sidebar {
+            width: 0;
+            height: 100%;
+            background: var(--card-bg);
+            border-left: 0;
+            display: flex;
+            flex-direction: column;
+            z-index: 1001;
+            transition: all 0.3s ease;
+            overflow: hidden;
+        }
+
+        #details-sidebar.active {
+            width: var(--sidebar-width);
+            border-left: 1px solid var(--border-color);
+            box-shadow: -4px 0 15px rgba(0,0,0,0.05);
+        }
+
+        @media (max-width: 768px) {
+            #sidebar {
+                position: absolute;
+                left: calc(-1 * var(--sidebar-width));
+            }
+            #sidebar.active {
+                left: 0;
+            }
         }
 
             /* Loading overlay styles */
@@ -48,8 +134,8 @@
             .spinner {
                 width: 50px;
                 height: 50px;
-                border: 6px solid #ddd;
-                border-top: 6px solid #007bff;
+                border: 4px solid #f3f3f3;
+                border-top: 4px solid var(--primary-blue);
                 border-radius: 50%;
                 animation: spin 1s linear infinite;
             }
@@ -57,11 +143,68 @@
             @keyframes spin {
                 0% { transform: rotate(0deg); }
                 100% { transform: rotate(360deg); }
-}
+            }
 
-        /* Map container */
-        #map {
-            height: 100%;
+        /* Sidebar Elements */
+        .sidebar-header {
+            padding: 24px;
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .sidebar-body {
+            flex-grow: 1;
+            overflow-y: overlay;
+            padding: 20px;
+        }
+        .search-container {
+            position: relative;
+            margin-bottom: 24px;
+        }
+        .search-container input {
+            padding-left: 40px;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-main);
+            color: var(--text-color);
+            height: 48px;
+            font-size: 14px;
+        }
+        .search-container i {
+            position: absolute;
+            left: 14px;
+            top: 15px;
+            color: #9e9e9e;
+        }
+
+        /* Floating Action Buttons */
+        .fab-container {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            z-index: 1001;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .btn-fab {
+            width: 45px;
+            height: 45px;
+            border-radius: 12px;
+            background: var(--card-bg);
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+        }
+
+        .btn-fab:hover {
+            background: var(--primary-blue);
+            color: white;
+            transform: translateY(-2px);
         }
 
         /* Modern Popup Design */
@@ -82,17 +225,24 @@
         }
         .popup-body {
             padding: 12px 16px !important;
-            background: #fff;
+            background: var(--card-bg);
+            flex-grow: 1;
+            overflow-y: auto;
+        }
+        .modern-popup {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
         }
         .popup-field-row:last-child {
             border-bottom: none !important;
             padding-bottom: 4px;
         }
 
-        /* Compact Colatilla / Abstract Styles */
+        /* Glassmorphism Abstract Style */
         .abstractUncollapsed {
-            max-width: 280px;
-            background: rgba(255, 255, 255, 0.9);
+            max-width: 320px;
+            background: var(--glass-bg);
             backdrop-filter: blur(4px);
             padding: 6px 10px;
             border-radius: 8px;
@@ -111,16 +261,23 @@
             display: block; /* Show list on hover */
         }
 
-        /* Center Title Repositioning */
-        .map-title-control {
-            position: fixed !important;
-            left: 50%;
-            transform: translateX(-50%);
-            top: 10px;
-            margin: 0 !important;
-            z-index: 1000;
-            white-space: nowrap;
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
         }
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #bdbdbd;
+            border-radius: 10px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #9e9e9e;
+        }
+
+        .leaflet-control-layers-list { color: var(--text-color); }
+        .card { background-color: var(--card-bg); color: var(--text-color); }
         </style>
         <title></title>
     </head>
@@ -134,10 +291,40 @@
         <p class="loading-text text-muted"><i>Best viewed using a desktop browser</i></p>
     </div>
 
+    <div id="app-wrapper">
+        <div id="sidebar" class="sidebar-bg">
+            <div class="sidebar-header">
+                <div class="d-flex align-items-center mb-2">
+                    <img src="images/mgblogo.png" width="45" height="45" class="me-3" alt="Logo">
+                    <div>
+                        <h6 class="mb-0 fw-bold" style="color: var(--primary-blue);">TENEMENT CONTROL MAP</h6>
+                        <small class="text-muted text-uppercase fw-bold" style="font-size: 0.65rem; letter-spacing: 1px;">MGB Region III | 2026 Edition</small>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="sidebar-body">
+                <div id="sidebar-controls">
+                    <!-- Leaflet Layer Tree will be injected here -->
+                </div>
+            </div>
+        </div>
 
-        <div id="map">
+        <div id="map-container">
+            <div class="fab-container">
+                <button class="btn-fab" onclick="toggleSidebar()" title="Toggle Sidebar">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div id="map"></div>
+
         </div>
         
+        <div id="details-sidebar">
+            <div id="details-content" class="h-100"></div>
+        </div>
+    </div>
+
         <script src="js/qgis2web_expressions.js"></script>
         <script src="js/leaflet.js"></script>
         <script src="js/L.Control.Layers.Tree.min.js"></script>
@@ -166,8 +353,6 @@
         <script src="data/ASMEPApplicationForSpecialMineralExtractionPermit_15.js"></script>
         <script src="data/APSAApplicationForProductionSharingAgreement_16.js"></script>
         <script src="data/AFTAApplicationForFinancialTechnicalAssistance_17.js"></script>
-
-        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
 
         <script>
         
@@ -210,51 +395,17 @@
             zoomControl:false, maxZoom:28, minZoom:1
         })
         var hash = new L.Hash(map);
-        map.attributionControl.setPrefix(' Developed using Leaflet | MGB Region 3 | Mine Management Division | Survey Section ');
+        map.attributionControl.setPrefix(' Leaflet | MGB Region 3 | Data from Mineral Land Survey Section | Developed by E.Espino');
         var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        
+        // Global layer registry for search index
 
-                //Title
-                var title = new L.Control();
-            title.onAdd = function (map) {
-                this._div = L.DomUtil.create('div', 'map-title-control');
-                this.update();
-                return this._div;
-            };
-
-            title.update = function () {
-                this._div.innerHTML = `
-                    <div class="d-flex align-items-center bg-white p-2 rounded shadow-sm border">
-                        <img src="images/mgblogo.png" width="40" height="40" class="me-2" alt="Logo">
-                        <div>
-                            <h6 class="mb-0 fw-bold">REGION 3 MINING TENEMENT CONTROL MAP</h6>
-                            <small class="text-muted text-uppercase">Data as of March 2026</small>
-                        </div>
-                    </div>`;
-            };
-
-            title.addTo(map);
-
-
-        // add class to format popup if it contains media
-		function addClassToPopupIfMedia(content, popup) {
-			var tempDiv = document.createElement('div');
-			tempDiv.innerHTML = content;
-			if (tempDiv.querySelector('td img')) {
-				popup._contentNode.classList.add('media');
-					// Delay to force the redraw
-					setTimeout(function() {
-						popup.update();
-					}, 10);
-			} else {
-				popup._contentNode.classList.remove('media');
-			}
-		}
         var zoomControl = L.control.zoom({
-            position: 'topleft'
+            position: 'topright'
         }).addTo(map);
-        L.control.locate({locateOptions: {maxZoom: 19}}).addTo(map);
+        L.control.locate({locateOptions: {maxZoom: 19}, position: 'topright'}).addTo(map);
         var measureControl = new L.Control.Measure({
-            position: 'topleft',
+            position: 'topright',
             primaryLengthUnit: 'feet',
             secondaryLengthUnit: 'miles',
             primaryAreaUnit: 'sqfeet',
@@ -322,6 +473,35 @@
         layer_EsriDarkGray_3;
         map.addLayer(layer_EsriDarkGray_3);
 
+        // Global UI State
+        window.toggleSidebar = function() {
+            document.getElementById('sidebar').classList.toggle('collapsed');
+            setTimeout(() => map.invalidateSize(), 300);
+        };
+
+
+        window.toggleTheme = function() {
+            const body = document.documentElement;
+            const icon = document.getElementById('theme-icon');
+            if(body.getAttribute('data-theme') === 'dark') {
+                body.removeAttribute('data-theme');
+                icon.className = 'fas fa-moon';
+                map.removeLayer(layer_EsriDarkGray_3);
+                map.addLayer(layer_OpenStreetMap_0);
+            } else {
+                body.setAttribute('data-theme', 'dark');
+                icon.className = 'fas fa-sun';
+                map.removeLayer(layer_OpenStreetMap_0);
+                map.addLayer(layer_EsriDarkGray_3);
+            }
+        };
+
+        // Responsive trigger for mobile
+        if (window.innerWidth < 768) {
+            document.getElementById('sidebar').classList.add('collapsed');
+        }
+
+
         // Modernized Reusable Popup Generator
         function generatePopupContent(feature) {
             const fieldLabels = {
@@ -381,12 +561,11 @@
                     }
                 },
                 mouseover: highlightFeature,
+                click: function(e) {
+                    showDetails(feature);
+                    L.DomEvent.stopPropagation(e);
+                }
             });
-            var content = generatePopupContent(feature);
-			layer.on('popupopen', function(e) {
-				addClassToPopupIfMedia(content, e.popup);
-			});
-			layer.bindPopup(content, { maxHeight: 450, minWidth: 320 });
         }
 
         function pop_PROCProclamation_4(feature, layer) { handleLayerEvents(feature, layer); }
@@ -844,10 +1023,11 @@
             onEachFeature: pop_AFTAApplicationForFinancialTechnicalAssistance_17,
             style: style_AFTAApplicationForFinancialTechnicalAssistance_17_0,
         });
+
         bounds_group.addLayer(layer_AFTAApplicationForFinancialTechnicalAssistance_17);
         map.addLayer(layer_AFTAApplicationForFinancialTechnicalAssistance_17);
-        var overlaysTree = [
-        {label: '<b>LEGEND: uncheck to hide tenements</b>',  selectAllCheckbox: false, children: [
+        var overlaysTree = [ 
+        {label: '<b>LEGEND: uncheck to hide tenements</b>',  selectAllCheckbox: true, children: [
             {label: '<img src="legend/AFTAApplicationForFinancialTechnicalAssistance_17.png" /> AFTA Application For Financial Technical Assistance', layer: layer_AFTAApplicationForFinancialTechnicalAssistance_17},
             {label: '<img src="legend/APSAApplicationForProductionSharingAgreement_16.png" /> APSA Application For Production Sharing Agreement', layer: layer_APSAApplicationForProductionSharingAgreement_16},
             {label: '<img src="legend/ASMEPApplicationForSpecialMineralExtractionPermit_15.png" /> ASMEP Application For Special Mineral Extraction Permit', layer: layer_ASMEPApplicationForSpecialMineralExtractionPermit_15},
@@ -877,6 +1057,17 @@
         });
 
         lay.addTo(map);
+        
+        // World Class Move: Integrate Leaflet Control into Sidebar
+        var layerControlEl = document.querySelector('.leaflet-control-layers');
+        if(layerControlEl) {
+            document.getElementById('sidebar-controls').appendChild(layerControlEl);
+            layerControlEl.classList.add('leaflet-control-layers-expanded');
+            layerControlEl.style.border = 'none';
+            layerControlEl.style.boxShadow = 'none';
+            layerControlEl.style.background = 'transparent';
+        }
+
 		document.addEventListener("DOMContentLoaded", function() {
             // set new Layers List height which considers toggle icon
             function newLayersListHeight() {
@@ -984,8 +1175,34 @@
             coordDisplay.update = function (latlng) {
                 this._div.innerHTML = latlng ? `Lat: ${latlng.lat.toFixed(5)}, Long: ${latlng.lng.toFixed(5)}` : 'Move cursor over the map';
             };
-
+            
             coordDisplay.addTo(map);
+            
+            window.showDetails = function(feature) {
+                const content = generatePopupContent(feature);
+                const container = document.getElementById('details-content');
+                container.innerHTML = content;
+                
+                const header = container.querySelector('.popup-header');
+                if (header) {
+                    const closeBtn = document.createElement('button');
+                    closeBtn.className = 'btn-close btn-close-white position-absolute';
+                    closeBtn.style.top = '15px';
+                    closeBtn.style.right = '15px';
+                    closeBtn.onclick = closeDetails;
+                    header.appendChild(closeBtn);
+                }
+
+                document.getElementById('details-sidebar').classList.add('active');
+                setTimeout(() => map.invalidateSize(), 300);
+            };
+
+            window.closeDetails = function() {
+                document.getElementById('details-sidebar').classList.remove('active');
+                setTimeout(() => map.invalidateSize(), 300);
+            };
+
+            map.on('click', closeDetails);
 
             // Update coordinates on mouse move
             map.on('mousemove', function (e) {
